@@ -22,7 +22,7 @@ export default class NoteRefactor extends Plugin {
   NRDoc: NRDoc;
 
   async onload() {
-    this.settings = Object.assign(new NoteRefactorSettings(), await this.loadData());
+    this.settings = Object.assign(new NoteRefactorSettings(), (await this.loadData()) as Partial<NoteRefactorSettings> | null);
     this.momentDateRegex = new MomentDateRegex();
     this.obsFile = new ObsidianFile(this.settings, this.app)
     this.file = new NRFile(this.settings);
@@ -44,12 +44,6 @@ export default class NoteRefactor extends Plugin {
       id: 'app:extract-selection-content-only',
       name: 'Extract selection to new note - content only',
       callback: () => this.editModeGuard(() => this.extractSelectionContentOnly('replace-selection')),
-      hotkeys: [
-        {
-          modifiers: ["Mod", "Shift"],
-          key: "c",
-        },
-      ],
     });
 
     this.addCommand({
@@ -144,7 +138,7 @@ export default class NoteRefactor extends Plugin {
     if (!filePath || !mdView.file) { return; }
 
     if (this.settings.refactoredNoteTemplate !== undefined && this.settings.refactoredNoteTemplate !== '') {
-      const link = await this.app.fileManager.generateMarkdownLink(mdView.file, '', '', '');
+      const link = this.app.fileManager.generateMarkdownLink(mdView.file, '', '', '');
       const newNoteLink = await this.NRDoc.markdownLink(filePath);
       note = this.NRDoc.templatedContent(note, this.settings.refactoredNoteTemplate, mdView.file.basename, link, fileName, newNoteLink, '', note);
     }
@@ -166,7 +160,7 @@ export default class NoteRefactor extends Plugin {
     if (!filePath || !mdView.file) { return; }
 
     if (this.settings.refactoredNoteTemplate !== undefined && this.settings.refactoredNoteTemplate !== '') {
-      const link = await this.app.fileManager.generateMarkdownLink(mdView.file, '', '', '');
+      const link = this.app.fileManager.generateMarkdownLink(mdView.file, '', '', '');
       const newNoteLink = await this.NRDoc.markdownLink(filePath);
       note = this.NRDoc.templatedContent(note, this.settings.refactoredNoteTemplate, mdView.file.basename, link, fileName, newNoteLink, '', note);
     }

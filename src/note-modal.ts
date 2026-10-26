@@ -2,18 +2,22 @@ import { App, FuzzyMatch, FuzzySuggestModal, TFile } from 'obsidian';
 import ModalNoteCreation from './modal-note-creation';
 const EMPTY_TEXT = 'No files found to append content. Enter to create a new one.'
 const PLACEHOLDER_TEXT = 'Type file to append to or create';
+interface NewNoteItem {
+    path: string;
+    isNew: true;
+}
+type RefactorTarget = TFile | NewNoteItem;
+
 const instructions = [
     {command: '↑↓', purpose: 'to navigate'},
     {command: '↵', purpose: 'to append content to file'},
     {command: 'esc', purpose: 'to dismiss'}
 ];
 
-export default class NoteRefactorModal extends FuzzySuggestModal<TFile>{
+export default class NoteRefactorModal extends FuzzySuggestModal<RefactorTarget>{
     modalNoteCreation: ModalNoteCreation;
-    files: TFile[];
-    newNoteResult: HTMLDivElement;
-    suggestionEmpty: HTMLDivElement;
-    noSuggestion: boolean;
+    files: TFile[] = [];
+    noSuggestion = false;
 
     constructor(app: App, modalNoteCreation: ModalNoteCreation) {
         super(app);
@@ -28,32 +32,31 @@ export default class NoteRefactorModal extends FuzzySuggestModal<TFile>{
         this.setInstructions(instructions);
     }
 
-    getItems(): TFile[] {
+    getItems(): RefactorTarget[] {
         const inputName = this.inputEl.value;
         if(inputName.length == 0 || this.files.filter(f => this.isMatch(f.path, inputName + '.md')).length > 0){
             return this.files;
         }
-        const newFile: TFile = {basename: this.inputEl.value, path: undefined, stat: undefined, vault: undefined, extension: undefined, parent: undefined, name: undefined};
-        newFile.path = this.inputEl.value;
+        const newFile: NewNoteItem = { path: this.inputEl.value, isNew: true };
         return [newFile, ...this.files];
     }
     
-    getItemText(item: TFile): string {
+    getItemText(item: RefactorTarget): string {
         this.noSuggestion = false;
         return item.path;
     }
     
-    onChooseItem(item: TFile, evt: MouseEvent | KeyboardEvent): void {
-        if(this.noSuggestion || item.vault == undefined) {
+    onChooseItem(item: RefactorTarget): void {
+        if(this.noSuggestion || !(item instanceof TFile)) {
             void this.modalNoteCreation.create(this.inputEl.value);
         } else {
             void this.modalNoteCreation.append(item);
         }
     }
 
-    renderSuggestion(item: FuzzyMatch<TFile>, el: HTMLElement) {
+    renderSuggestion(item: FuzzyMatch<RefactorTarget>, el: HTMLElement) {
         el.setText(item.item.path.replace('.md', ''));
-        if(item.item.vault == undefined) {
+        if(!(item.item instanceof TFile)) {
             this.itemInstructionMessage(el, 'Enter to create new file');
         }
     }

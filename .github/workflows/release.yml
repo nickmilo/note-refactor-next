@@ -1,6 +1,9 @@
-# Publishes a GitHub release whenever the version in manifest.json changes.
-# Obsidian delivers plugin updates from releases: the tag must match the
-# manifest version, with main.js, manifest.json and styles.css attached.
+# Builds main.js from source and publishes a GitHub release whenever the
+# version in manifest.json changes. Obsidian delivers plugin updates from
+# releases: the tag must match the manifest version, with main.js,
+# manifest.json and styles.css attached. Each asset gets a build provenance
+# attestation, and package-lock.json is created on first run so Obsidian can
+# verify the build.
 name: Release
 
 on:
@@ -8,11 +11,14 @@ on:
     branches: [main]
     paths:
       - manifest.json
+      - package.json
       - .github/workflows/release.yml
   workflow_dispatch:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -22,23 +28,59 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Read version
         id: v
-        run: echo "version=$(jq -r .version manifest.json)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(jq -r .version manifest.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Create release if it doesn't exist
+      - name: Create lockfile if missing
+        if: steps.v.outputs.exists != 'true'
+        run: |
+          if [ ! -f package-lock.json ]; then
+            npm install --package-lock-only --ignore-scripts
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "Add package-lock.json"
+            git push origin HEAD:main
+          fi
+          echo "SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Build
+        if: steps.v.outputs.exists != 'true'
+        run: |
+          npm ci
+          npm run build
+
+      - name: Attest build provenance
+        if: steps.v.outputs.exists != 'true'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+
+      - name: Create release
+        if: steps.v.outputs.exists != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.v.outputs.version }}
         run: |
-          if gh release view "$VERSION" >/dev/null 2>&1; then
-            echo "Release $VERSION already exists, nothing to do."
-            exit 0
-          fi
           # Notes = message of the commit that last changed manifest.json
           git log -1 --format=%B -- manifest.json | sed '/^Co-Authored-By:/d;/^Claude-Session:/d' > notes.md
           gh release create "$VERSION" main.js manifest.json styles.css \
             --title "$VERSION" \
             --notes-file notes.md \
-            --target "$GITHUB_SHA" \
+            --target "$SHA" \
             --latest

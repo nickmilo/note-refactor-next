@@ -13,12 +13,13 @@ This is a continuation of **[Note Refactor](https://github.com/lynchjames/note-r
 - Uses Obsidian's Vault API (`getAbstractFileByPath`, `Vault.process`) instead of raw adapter reads and writes.
 - Awaits file operations in order, including when splitting a note by headings.
 - Builds settings and suggestion elements with Obsidian's `createEl` helpers; settings names are in sentence case.
-- Default hotkey for **Extract selection to new note - first line as file name** is `Cmd/Ctrl + Shift + R`.
+- Settings use Obsidian's declarative settings API, so they show up in Obsidian's settings search. Requires Obsidian 1.13 or later.
+- Default hotkey for **Extract selection to new note - first line as file name** is `Cmd/Ctrl + Shift + R`. No other command has a default hotkey; set your own under Settings → Hotkeys.
 
 ## Commands
 
 - Extract selection to new note - first line as file name (`Cmd/Ctrl + Shift + R`)
-- Extract selection to new note - content only (`Cmd/Ctrl + Shift + C`)
+- Extract selection to new note - content only
 - Extract selection to new note - only prefix as file name
 - Split note here - first line as file name
 - Split note here - content only

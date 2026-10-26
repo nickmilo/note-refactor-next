@@ -13,7 +13,6 @@ export default class ModalNoteCreation {
     file: NRFile
     editor: Editor;
     mode: ReplaceMode;
-    fileNameInput: HTMLInputElement;
     
     constructor(app: App, settings: NoteRefactorSettings, doc :NRDoc, file: NRFile, obsFile:ObsidianFile, content: string, editor: Editor, mode: ReplaceMode) {
       this.app = app;
