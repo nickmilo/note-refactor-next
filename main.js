@@ -47,9 +47,10 @@ var MomentDateRegex = class {
     }
     const now = /* @__PURE__ */ new Date();
     const formattedDates = matches.map((m) => {
-      const dateFormat = m.groups.date === "" ? DEFAULT_DATE_FORMAT : m.groups.date;
+      var _a, _b, _c;
+      const dateFormat = !((_a = m.groups) == null ? void 0 : _a.date) ? DEFAULT_DATE_FORMAT : m.groups.date;
       return [
-        m.groups.target,
+        (_c = (_b = m.groups) == null ? void 0 : _b.target) != null ? _c : "",
         this.getMoment(now, dateFormat)
       ];
     });
@@ -94,31 +95,30 @@ var Location = /* @__PURE__ */ ((Location2) => {
 var NoteRefactorSettingsTab = class extends import_obsidian2.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
-    this.folderUPop = document.createElement("b");
-    this.filePrefixUPop = document.createElement("b");
+    this.folderUPop = createEl("b", { cls: "u-pop" });
+    this.filePrefixUPop = createEl("b", { cls: "u-pop" });
     this.momentDateRegex = new MomentDateRegex();
     this.plugin = plugin;
   }
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    this.folderUPop.className = this.filePrefixUPop.className = "u-pop";
     new import_obsidian2.Setting(containerEl).setName("Default location for new notes").setDesc("Where newly created notes are placed.").addDropdown((dropDown) => dropDown.addOption(Location[0 /* VaultFolder */], "Vault folder").addOption(Location[1 /* SameFolder */], "Same folder as current file").addOption(Location[2 /* SpecifiedFolder */], "In the folder specified below").setValue(Location[this.plugin.settings.newFileLocation] || 0 /* VaultFolder */.toString()).onChange((value) => {
       this.plugin.settings.newFileLocation = Location[value];
-      this.plugin.saveData(this.plugin.settings);
+      void this.plugin.saveData(this.plugin.settings);
       this.display();
     }));
     if (this.plugin.settings.newFileLocation == 2 /* SpecifiedFolder */) {
       new import_obsidian2.Setting(containerEl).setName("Folder for new notes").setDesc(this.folderDescriptionContent()).addTextArea((text) => text.setPlaceholder("Example: folder 1/folder").setValue(this.plugin.settings.customFolder).onChange((value) => {
         this.plugin.settings.customFolder = value;
-        this.plugin.saveData(this.plugin.settings);
+        void this.plugin.saveData(this.plugin.settings);
         this.updateFolderUPop();
       }));
     }
     new import_obsidian2.Setting(containerEl).setName("File name prefix").setDesc(this.filenamePrefixDescriptionContent()).addTextArea((text) => {
       text.setPlaceholder("Example: {{date:YYYYMMDDHHmm}}-").setValue(this.plugin.settings.fileNamePrefix || "").onChange((value) => {
         this.plugin.settings.fileNamePrefix = value;
-        this.plugin.saveData(this.plugin.settings);
+        void this.plugin.saveData(this.plugin.settings);
         this.updateFileNamePrefixUPop();
       });
       text.inputEl.rows = 2;
@@ -126,12 +126,12 @@ var NoteRefactorSettingsTab = class extends import_obsidian2.PluginSettingTab {
     });
     new import_obsidian2.Setting(containerEl).setName("Transclude by default").setDesc("When content has been extracted/split into a new note, include a transclusion of the new note").addToggle((toggle) => toggle.setValue(this.plugin.settings.transcludeByDefault).onChange((value) => {
       this.plugin.settings.transcludeByDefault = value;
-      this.plugin.saveData(this.plugin.settings);
+      void this.plugin.saveData(this.plugin.settings);
     }));
-    new import_obsidian2.Setting(containerEl).setName("Note link template").setDesc(this.tempalteDescriptionContent("The template used to generate the link to the extracted note. This overrides the Transclude by Default setting.")).addTextArea((text) => {
+    new import_obsidian2.Setting(containerEl).setName("Note link template").setDesc(this.tempalteDescriptionContent("The template used to generate the link to the extracted note. This overrides the transclude by default setting.")).addTextArea((text) => {
       text.setPlaceholder("Example:\n\nSee also -> {{new_note_link}}").setValue(this.plugin.settings.noteLinkTemplate || "").onChange((value) => {
         this.plugin.settings.noteLinkTemplate = value;
-        this.plugin.saveData(this.plugin.settings);
+        void this.plugin.saveData(this.plugin.settings);
         return text;
       });
       text.inputEl.rows = 10;
@@ -140,90 +140,90 @@ var NoteRefactorSettingsTab = class extends import_obsidian2.PluginSettingTab {
     new import_obsidian2.Setting(containerEl).setName("Refactored note template").setDesc(this.tempalteDescriptionContent("The template used to generate the content for the refactored note.")).addTextArea((text) => {
       text.setPlaceholder("Example:\n\n{{new_note_content}}\n\n---\nLink to original note: {{link}}").setValue(this.plugin.settings.refactoredNoteTemplate || "").onChange((value) => {
         this.plugin.settings.refactoredNoteTemplate = value;
-        this.plugin.saveData(this.plugin.settings);
+        void this.plugin.saveData(this.plugin.settings);
         return text;
       });
       text.inputEl.rows = 10;
       text.inputEl.cols = 25;
     });
-    new import_obsidian2.Setting(containerEl).setName("Exclude First Line").setDesc("Prevent the first line of selected/split note content from being included in the new note (only applies for first line as file name commands)").addToggle((toggle) => toggle.setValue(this.plugin.settings.excludeFirstLineInNote).onChange((value) => {
+    new import_obsidian2.Setting(containerEl).setName("Exclude first line").setDesc("Prevent the first line of selected/split note content from being included in the new note (only applies for first line as file name commands)").addToggle((toggle) => toggle.setValue(this.plugin.settings.excludeFirstLineInNote).onChange((value) => {
       this.plugin.settings.excludeFirstLineInNote = value;
-      this.plugin.saveData(this.plugin.settings);
+      void this.plugin.saveData(this.plugin.settings);
       this.display();
     }));
-    new import_obsidian2.Setting(containerEl).setName("Include Heading").setDesc("Include first line of selected/split note content as note heading (applies for both first line as title and content only commands)").addToggle((toggle) => toggle.setValue(this.plugin.settings.includeFirstLineAsNoteHeading).onChange((value) => {
+    new import_obsidian2.Setting(containerEl).setName("Include heading").setDesc("Include first line of selected/split note content as note heading (applies for both first line as title and content only commands)").addToggle((toggle) => toggle.setValue(this.plugin.settings.includeFirstLineAsNoteHeading).onChange((value) => {
       this.plugin.settings.includeFirstLineAsNoteHeading = value;
-      this.plugin.saveData(this.plugin.settings);
+      void this.plugin.saveData(this.plugin.settings);
       this.display();
     }));
-    new import_obsidian2.Setting(containerEl).setName("Open New Note").setDesc("Open the new note in a new pane").addToggle((toggle) => toggle.setValue(this.plugin.settings.openNewNote).onChange((value) => {
+    new import_obsidian2.Setting(containerEl).setName("Open new note").setDesc("Open the new note in a new pane").addToggle((toggle) => toggle.setValue(this.plugin.settings.openNewNote).onChange((value) => {
       this.plugin.settings.openNewNote = value;
-      this.plugin.saveData(this.plugin.settings);
+      void this.plugin.saveData(this.plugin.settings);
     }));
     if (this.plugin.settings.includeFirstLineAsNoteHeading) {
       new import_obsidian2.Setting(containerEl).setName("Heading format").setDesc("Set format of the heading to be included in note content").addText((text) => text.setPlaceholder("# or ##").setValue(this.plugin.settings.headingFormat).onChange((value) => {
         this.plugin.settings.headingFormat = value;
-        this.plugin.saveData(this.plugin.settings);
+        void this.plugin.saveData(this.plugin.settings);
       }));
     }
     new import_obsidian2.Setting(containerEl).setName("Normalize heading levels").setDesc("When content has been extracted/split into a new note, normalize the levels of the headings").addToggle((toggle) => toggle.setValue(this.plugin.settings.normalizeHeaderLevels).onChange((value) => {
       this.plugin.settings.normalizeHeaderLevels = value;
-      this.plugin.saveData(this.plugin.settings);
+      void this.plugin.saveData(this.plugin.settings);
     }));
   }
   tempalteDescriptionContent(introText) {
     const descEl = document.createDocumentFragment();
     descEl.appendText(introText);
-    descEl.appendChild(document.createElement("br"));
+    descEl.createEl("br");
     descEl.appendText("Supported placeholders:");
-    descEl.appendChild(document.createElement("br"));
+    descEl.createEl("br");
     descEl.appendText("{{date}} {{title}} {{link}} {{new_note_title}} {{new_note_link}} {{new_note_content}}");
     return descEl;
   }
   folderDescriptionContent() {
     const descEl = document.createDocumentFragment();
     descEl.appendText("Newly created notes will appear under this folder.");
-    descEl.appendChild(document.createElement("br"));
+    descEl.createEl("br");
     descEl.appendText("For more syntax, refer to ");
     this.dateFormattingDescription(descEl);
     descEl.appendText("Your current folder path syntax looks like this:");
-    descEl.appendChild(document.createElement("br"));
+    descEl.createEl("br");
     this.updateFolderUPop();
     descEl.appendChild(this.folderUPop);
     return descEl;
   }
   updateFolderUPop() {
-    this.folderUPop.innerText = this.momentDateRegex.replace(this.plugin.settings.customFolder);
+    this.folderUPop.setText(this.momentDateRegex.replace(this.plugin.settings.customFolder));
   }
   filenamePrefixDescriptionContent() {
     const descEl = document.createDocumentFragment();
     descEl.appendText("Newly created notes will have this prefix");
-    descEl.appendChild(document.createElement("br"));
+    descEl.createEl("br");
     this.dateFormattingDescription(descEl);
     descEl.appendText("Your current file name prefix syntax looks like this:");
-    descEl.appendChild(document.createElement("br"));
+    descEl.createEl("br");
     this.updateFileNamePrefixUPop();
     descEl.appendChild(this.filePrefixUPop);
     return descEl;
   }
   dateFormattingDescription(descEl) {
     descEl.appendText("Date formats are supported {{date:YYYYMMDDHHmm}}");
-    descEl.appendChild(document.createElement("br"));
+    descEl.createEl("br");
     descEl.appendText("and used with current date and time when note is created.");
-    descEl.appendChild(document.createElement("br"));
+    descEl.createEl("br");
     descEl.appendText("For more syntax, refer to ");
     this.addMomentDocsLink(descEl);
   }
   updateFileNamePrefixUPop() {
-    this.filePrefixUPop.innerText = this.momentDateRegex.replace(this.plugin.settings.fileNamePrefix);
+    this.filePrefixUPop.setText(this.momentDateRegex.replace(this.plugin.settings.fileNamePrefix));
   }
   addMomentDocsLink(descEl) {
-    const a = document.createElement("a");
-    a.href = "https://momentjs.com/docs/#/displaying/format/";
-    a.text = "format reference";
-    a.target = "_blank";
-    descEl.appendChild(a);
-    descEl.appendChild(document.createElement("br"));
+    descEl.createEl("a", {
+      href: "https://momentjs.com/docs/#/displaying/format/",
+      text: "format reference",
+      attr: { target: "_blank" }
+    });
+    descEl.createEl("br");
   }
 };
 
@@ -265,13 +265,14 @@ var ObsidianFile = class {
     this.momentDateRegex = new MomentDateRegex();
   }
   filePath(view) {
+    var _a, _b, _c;
     let path = "";
     switch (this.settings.newFileLocation) {
       case 0 /* VaultFolder */:
         path = this.vault.getRoot().path;
         break;
       case 1 /* SameFolder */:
-        path = view.file.parent.path;
+        path = (_c = (_b = (_a = view == null ? void 0 : view.file) == null ? void 0 : _a.parent) == null ? void 0 : _b.path) != null ? _c : this.vault.getRoot().path;
         break;
       case 2 /* SpecifiedFolder */:
         path = this.momentDateRegex.replace(this.settings.customFolder);
@@ -286,7 +287,7 @@ var ObsidianFile = class {
     const view = this.app.workspace.getActiveViewOfType(import_obsidian3.MarkdownView);
     const folderPath = this.filePath(view);
     const filePath = this.filePathAndFileName(fileName, view);
-    const folderExists = await this.vault.adapter.exists(folderPath, false);
+    const folderExists = this.vault.getAbstractFileByPath(folderPath) instanceof import_obsidian3.TFolder;
     if (!folderExists) {
       const folders = folderPath.split("/");
       try {
@@ -296,9 +297,9 @@ var ObsidianFile = class {
       }
     }
     try {
-      const fileExists = await this.vault.adapter.exists(filePath);
-      if (fileExists) {
-        await this.appendFile(filePath, note);
+      const existing = this.vault.getAbstractFileByPath(filePath);
+      if (existing instanceof import_obsidian3.TFile) {
+        await this.appendFile(existing, note);
       } else {
         await this.vault.create(filePath, note);
       }
@@ -307,19 +308,20 @@ var ObsidianFile = class {
       console.error(error);
     }
   }
-  async appendFile(filePath, note) {
-    let existingContent = await this.app.vault.adapter.read(filePath);
-    if (existingContent.length > 0) {
-      existingContent = existingContent + "\r\r";
-    }
-    await this.vault.adapter.write(filePath, existingContent + note);
+  async appendFile(file, note) {
+    await this.vault.process(file, (existingContent) => {
+      if (existingContent.length > 0) {
+        existingContent = existingContent + "\r\r";
+      }
+      return existingContent + note;
+    });
   }
   async createFoldersFromVaultRoot(parentPath, folders) {
     if (folders.length === 0) {
       return;
     }
     const newFolderPath = (0, import_obsidian3.normalizePath)([parentPath, folders[0]].join("/"));
-    const folderExists = await this.vault.adapter.exists(newFolderPath, false);
+    const folderExists = this.vault.getAbstractFileByPath(newFolderPath) instanceof import_obsidian3.TFolder;
     folders.shift();
     if (folderExists) {
       await this.createFoldersFromVaultRoot(newFolderPath, folders);
@@ -456,7 +458,7 @@ var NRDoc = class {
       contentArr.forEach((line, i) => {
         const level = this.headingLevel(line);
         if (level > 0) {
-          contentArr[i] = line.substr(minHeadingLevel - 1);
+          contentArr[i] = line.substring(minHeadingLevel - 1);
         }
       });
     }
@@ -514,22 +516,19 @@ var NoteRefactorModal = class extends import_obsidian4.FuzzySuggestModal {
   }
   onChooseItem(item, evt) {
     if (this.noSuggestion || item.vault == void 0) {
-      this.modalNoteCreation.create(this.inputEl.value);
+      void this.modalNoteCreation.create(this.inputEl.value);
     } else {
-      this.modalNoteCreation.append(item);
+      void this.modalNoteCreation.append(item);
     }
   }
   renderSuggestion(item, el) {
-    el.innerText = item.item.path.replace(".md", "");
+    el.setText(item.item.path.replace(".md", ""));
     if (item.item.vault == void 0) {
       this.itemInstructionMessage(el, "Enter to create new file");
     }
   }
   itemInstructionMessage(resultEl, message) {
-    const el = document.createElement("kbd");
-    el.addClass("suggestion-hotkey");
-    el.innerText = message;
-    resultEl.appendChild(el);
+    resultEl.createEl("kbd", { cls: "suggestion-hotkey", text: message });
   }
   isMatch(input, match) {
     return input.toLocaleLowerCase() == match.toLocaleLowerCase();
@@ -552,27 +551,37 @@ var ModalNoteCreation = class {
   async create(fileName) {
     fileName = this.file.sanitisedFileName(fileName);
     const { currentFile } = this.getCurrentFile();
+    if (!currentFile) {
+      return;
+    }
     const filePath = await this.obsFile.createOrAppendFile(fileName, "");
+    if (!filePath) {
+      return;
+    }
     const templatedContent = await this.templatedContent(this.content, currentFile, filePath, fileName);
     await this.obsFile.createOrAppendFile(fileName, templatedContent);
     await this.doc.replaceContent(fileName, filePath, this.editor, currentFile, templatedContent, this.content, this.mode);
     if (this.settings.openNewNote) {
-      this.app.workspace.openLinkText(fileName, (0, import_obsidian5.getLinkpath)(filePath), true);
+      await this.app.workspace.openLinkText(fileName, (0, import_obsidian5.getLinkpath)(filePath), true);
     }
   }
   async append(file, existingContent) {
-    const { currentView, currentFile } = this.getCurrentFile();
+    const { currentFile } = this.getCurrentFile();
+    if (!currentFile) {
+      return;
+    }
     const templatedContent = await this.templatedContent(this.content, currentFile, file.path, file.basename);
     existingContent = existingContent != null ? existingContent : await this.app.vault.read(file) + "\r\r";
     await this.app.vault.modify(file, existingContent + templatedContent);
     await this.doc.replaceContent(file.basename, file.path, this.editor, currentFile, templatedContent, this.content, this.mode);
     if (this.settings.openNewNote) {
-      this.app.workspace.openLinkText(file.basename, (0, import_obsidian5.getLinkpath)(file.path), true);
+      await this.app.workspace.openLinkText(file.basename, (0, import_obsidian5.getLinkpath)(file.path), true);
     }
   }
   getCurrentFile() {
+    var _a;
     const currentView = this.app.workspace.getActiveViewOfType(import_obsidian5.MarkdownView);
-    const currentFile = currentView.file;
+    const currentFile = (_a = currentView == null ? void 0 : currentView.file) != null ? _a : null;
     return { currentView, currentFile };
   }
   async templatedContent(note, curerntFile, filePath, fileName) {
@@ -587,8 +596,6 @@ var ModalNoteCreation = class {
 
 // src/main.ts
 var NoteRefactor = class extends import_obsidian6.Plugin {
-  onInit() {
-  }
   async onload() {
     this.settings = Object.assign(new NoteRefactorSettings(), await this.loadData());
     this.momentDateRegex = new MomentDateRegex();
@@ -649,23 +656,26 @@ var NoteRefactor = class extends import_obsidian6.Plugin {
     });
     this.addSettingTab(new NoteRefactorSettingsTab(this.app, this));
   }
-  onunload() {
-  }
   editModeGuard(command) {
     const mdView = this.app.workspace.getActiveViewOfType(import_obsidian6.MarkdownView);
     if (!mdView || mdView.getMode() !== "source") {
       new import_obsidian6.Notice("Please use Note Refactor Next in edit mode");
       return;
     } else {
-      command();
+      void command();
     }
   }
   async splitOnHeading(headingLevel) {
     const mdView = this.app.workspace.getActiveViewOfType(import_obsidian6.MarkdownView);
+    if (!mdView) {
+      return;
+    }
     const doc = mdView.editor;
     const headingNotes = this.NRDoc.contentSplitByHeading(doc, headingLevel);
     const dedupedFileNames = this.file.ensureUniqueFileNames(headingNotes);
-    headingNotes.forEach((hn, i) => this.createNoteWithFirstLineAsFileName(dedupedFileNames[i], hn, mdView, doc, "replace-headings", true));
+    for (const [i, hn] of headingNotes.entries()) {
+      await this.createNoteWithFirstLineAsFileName(dedupedFileNames[i], hn, mdView, doc, "replace-headings", true);
+    }
   }
   async extractSelectionFirstLine(mode) {
     const mdView = this.app.workspace.getActiveViewOfType(import_obsidian6.MarkdownView);
@@ -697,6 +707,9 @@ var NoteRefactor = class extends import_obsidian6.Plugin {
     const originalNote = this.NRDoc.noteContent(header, contentArr);
     let note = originalNote;
     const filePath = await this.obsFile.createOrAppendFile(fileName, "");
+    if (!filePath || !mdView.file) {
+      return;
+    }
     if (this.settings.refactoredNoteTemplate !== void 0 && this.settings.refactoredNoteTemplate !== "") {
       const link = await this.app.fileManager.generateMarkdownLink(mdView.file, "", "", "");
       const newNoteLink = await this.NRDoc.markdownLink(filePath);
@@ -714,6 +727,9 @@ var NoteRefactor = class extends import_obsidian6.Plugin {
     const originalNote = this.NRDoc.noteContent(originalHeader, contentArr);
     let note = originalNote;
     const filePath = await this.obsFile.createOrAppendFile(fileName, "");
+    if (!filePath || !mdView.file) {
+      return;
+    }
     if (this.settings.refactoredNoteTemplate !== void 0 && this.settings.refactoredNoteTemplate !== "") {
       const link = await this.app.fileManager.generateMarkdownLink(mdView.file, "", "", "");
       const newNoteLink = await this.NRDoc.markdownLink(filePath);

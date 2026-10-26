@@ -8,8 +8,8 @@ import MomentDateRegex from './moment-date-regex';
 import NoteRefactor from './main';
 
 export class NoteRefactorSettingsTab extends PluginSettingTab {
-  folderUPop = document.createElement('b');
-  filePrefixUPop = document.createElement('b');
+  folderUPop = createEl('b', { cls: 'u-pop' });
+  filePrefixUPop = createEl('b', { cls: 'u-pop' });
   momentDateRegex = new MomentDateRegex();
   plugin: NoteRefactor;
   constructor(app: App, plugin: NoteRefactor) {
@@ -21,8 +21,6 @@ export class NoteRefactorSettingsTab extends PluginSettingTab {
     const { containerEl } = this;
 
     containerEl.empty();
-    this.folderUPop.className = this.filePrefixUPop.className = 'u-pop';
-
     new Setting(containerEl)
       .setName('Default location for new notes')
       .setDesc('Where newly created notes are placed.')
@@ -34,7 +32,7 @@ export class NoteRefactorSettingsTab extends PluginSettingTab {
           .setValue(Location[this.plugin.settings.newFileLocation] || Location.VaultFolder.toString())
           .onChange((value: string) => {
             this.plugin.settings.newFileLocation = Location[value as keyof typeof Location];
-            this.plugin.saveData(this.plugin.settings);
+            void this.plugin.saveData(this.plugin.settings);
             this.display();
           }));
 
@@ -48,7 +46,7 @@ export class NoteRefactorSettingsTab extends PluginSettingTab {
             .setValue(this.plugin.settings.customFolder)
             .onChange((value) => {
               this.plugin.settings.customFolder = value;
-              this.plugin.saveData(this.plugin.settings);
+              void this.plugin.saveData(this.plugin.settings);
               this.updateFolderUPop();
             }));
     }
@@ -62,7 +60,7 @@ export class NoteRefactorSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.fileNamePrefix || '')
           .onChange((value) => {
             this.plugin.settings.fileNamePrefix = value;
-            this.plugin.saveData(this.plugin.settings);
+            void this.plugin.saveData(this.plugin.settings);
             this.updateFileNamePrefixUPop();
           });
         text.inputEl.rows = 2;
@@ -75,19 +73,19 @@ export class NoteRefactorSettingsTab extends PluginSettingTab {
       .addToggle(toggle => toggle.setValue(this.plugin.settings.transcludeByDefault)
         .onChange((value) => {
           this.plugin.settings.transcludeByDefault = value;
-          this.plugin.saveData(this.plugin.settings);
+          void this.plugin.saveData(this.plugin.settings);
         }));
 
     new Setting(containerEl)
       .setName('Note link template')
-      .setDesc(this.tempalteDescriptionContent('The template used to generate the link to the extracted note. This overrides the Transclude by Default setting.'))
+      .setDesc(this.tempalteDescriptionContent('The template used to generate the link to the extracted note. This overrides the transclude by default setting.'))
       .addTextArea((text) => {
         text
           .setPlaceholder("Example:\n\nSee also -> {{new_note_link}}")
           .setValue(this.plugin.settings.noteLinkTemplate || '')
           .onChange((value) => {
             this.plugin.settings.noteLinkTemplate = value;
-            this.plugin.saveData(this.plugin.settings);
+            void this.plugin.saveData(this.plugin.settings);
             return text;
           })
         text.inputEl.rows = 10;
@@ -103,7 +101,7 @@ export class NoteRefactorSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.refactoredNoteTemplate || '')
           .onChange((value) => {
             this.plugin.settings.refactoredNoteTemplate = value;
-            this.plugin.saveData(this.plugin.settings);
+            void this.plugin.saveData(this.plugin.settings);
             return text;
           })
         text.inputEl.rows = 10;
@@ -111,32 +109,32 @@ export class NoteRefactorSettingsTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName('Exclude First Line')
+      .setName('Exclude first line')
       .setDesc('Prevent the first line of selected/split note content from being included in the new note (only applies for first line as file name commands)')
       .addToggle(toggle => toggle.setValue(this.plugin.settings.excludeFirstLineInNote)
         .onChange((value) => {
           this.plugin.settings.excludeFirstLineInNote = value;
-          this.plugin.saveData(this.plugin.settings);
+          void this.plugin.saveData(this.plugin.settings);
           this.display();
         }));
 
     new Setting(containerEl)
-      .setName('Include Heading')
+      .setName('Include heading')
       .setDesc('Include first line of selected/split note content as note heading (applies for both first line as title and content only commands)')
       .addToggle(toggle => toggle.setValue(this.plugin.settings.includeFirstLineAsNoteHeading)
         .onChange((value) => {
           this.plugin.settings.includeFirstLineAsNoteHeading = value;
-          this.plugin.saveData(this.plugin.settings);
+          void this.plugin.saveData(this.plugin.settings);
           this.display();
         }));
 
     new Setting(containerEl)
-      .setName('Open New Note')
+      .setName('Open new note')
       .setDesc('Open the new note in a new pane')
       .addToggle(toggle => toggle.setValue(this.plugin.settings.openNewNote)
         .onChange((value) => {
           this.plugin.settings.openNewNote = value;
-          this.plugin.saveData(this.plugin.settings);
+          void this.plugin.saveData(this.plugin.settings);
         }));
 
     if (this.plugin.settings.includeFirstLineAsNoteHeading) {
@@ -149,7 +147,7 @@ export class NoteRefactorSettingsTab extends PluginSettingTab {
             .setValue(this.plugin.settings.headingFormat)
             .onChange((value) => {
               this.plugin.settings.headingFormat = value;
-              this.plugin.saveData(this.plugin.settings);
+              void this.plugin.saveData(this.plugin.settings);
             }));
     }
 
@@ -159,16 +157,16 @@ export class NoteRefactorSettingsTab extends PluginSettingTab {
       .addToggle(toggle => toggle.setValue(this.plugin.settings.normalizeHeaderLevels)
         .onChange((value) => {
           this.plugin.settings.normalizeHeaderLevels = value;
-          this.plugin.saveData(this.plugin.settings);
+          void this.plugin.saveData(this.plugin.settings);
         }));
   }
 
   private tempalteDescriptionContent(introText: string): DocumentFragment {
     const descEl = document.createDocumentFragment();
     descEl.appendText(introText);
-    descEl.appendChild(document.createElement('br'));
+    descEl.createEl('br');
     descEl.appendText('Supported placeholders:');
-    descEl.appendChild(document.createElement('br'));
+    descEl.createEl('br');
     descEl.appendText('{{date}} {{title}} {{link}} {{new_note_title}} {{new_note_link}} {{new_note_content}}');
     return descEl;
   }
@@ -176,27 +174,27 @@ export class NoteRefactorSettingsTab extends PluginSettingTab {
   private folderDescriptionContent(): DocumentFragment {
     const descEl = document.createDocumentFragment();
     descEl.appendText('Newly created notes will appear under this folder.');
-    descEl.appendChild(document.createElement('br'));
+    descEl.createEl('br');
     descEl.appendText('For more syntax, refer to ');
     this.dateFormattingDescription(descEl);
     descEl.appendText('Your current folder path syntax looks like this:');
-    descEl.appendChild(document.createElement('br'));
+    descEl.createEl('br');
     this.updateFolderUPop()
     descEl.appendChild(this.folderUPop);
     return descEl;
   }
 
   private updateFolderUPop() {
-    this.folderUPop.innerText = this.momentDateRegex.replace(this.plugin.settings.customFolder);
+    this.folderUPop.setText(this.momentDateRegex.replace(this.plugin.settings.customFolder));
   }
 
   private filenamePrefixDescriptionContent(): DocumentFragment {
     const descEl = document.createDocumentFragment();
     descEl.appendText('Newly created notes will have this prefix');
-    descEl.appendChild(document.createElement('br'));
+    descEl.createEl('br');
     this.dateFormattingDescription(descEl);
     descEl.appendText('Your current file name prefix syntax looks like this:');
-    descEl.appendChild(document.createElement('br'));
+    descEl.createEl('br');
     this.updateFileNamePrefixUPop();
     descEl.appendChild(this.filePrefixUPop);
     return descEl;
@@ -204,23 +202,23 @@ export class NoteRefactorSettingsTab extends PluginSettingTab {
 
   private dateFormattingDescription(descEl: DocumentFragment) {
     descEl.appendText('Date formats are supported {{date:YYYYMMDDHHmm}}');
-    descEl.appendChild(document.createElement('br'));
+    descEl.createEl('br');
     descEl.appendText('and used with current date and time when note is created.');
-    descEl.appendChild(document.createElement('br'));
+    descEl.createEl('br');
     descEl.appendText('For more syntax, refer to ');
     this.addMomentDocsLink(descEl);
   }
 
   private updateFileNamePrefixUPop() {
-    this.filePrefixUPop.innerText = this.momentDateRegex.replace(this.plugin.settings.fileNamePrefix);
+    this.filePrefixUPop.setText(this.momentDateRegex.replace(this.plugin.settings.fileNamePrefix));
   }
 
   private addMomentDocsLink(descEl: DocumentFragment) {
-    const a = document.createElement('a');
-    a.href = 'https://momentjs.com/docs/#/displaying/format/';
-    a.text = 'format reference';
-    a.target = '_blank';
-    descEl.appendChild(a);
-    descEl.appendChild(document.createElement('br'));
+    descEl.createEl('a', {
+      href: 'https://momentjs.com/docs/#/displaying/format/',
+      text: 'format reference',
+      attr: { target: '_blank' },
+    });
+    descEl.createEl('br');
   }
 }

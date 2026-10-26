@@ -29,29 +29,32 @@ export default class ModalNoteCreation {
       async create(fileName: string) : Promise<void> {
         fileName = this.file.sanitisedFileName(fileName);
         const { currentFile } = this.getCurrentFile();
+        if (!currentFile) { return; }
         const filePath = await this.obsFile.createOrAppendFile(fileName, '');
+        if (!filePath) { return; }
         const templatedContent = await this.templatedContent(this.content, currentFile, filePath, fileName);
         await this.obsFile.createOrAppendFile(fileName, templatedContent)
         await this.doc.replaceContent(fileName, filePath, this.editor, currentFile, templatedContent, this.content, this.mode);
         if(this.settings.openNewNote){
-          this.app.workspace.openLinkText(fileName, getLinkpath(filePath), true);
+          await this.app.workspace.openLinkText(fileName, getLinkpath(filePath), true);
         }
       }
 
       async append(file: TFile, existingContent?: string) {
-        const { currentView, currentFile } = this.getCurrentFile();
+        const { currentFile } = this.getCurrentFile();
+        if (!currentFile) { return; }
         const templatedContent = await this.templatedContent(this.content, currentFile, file.path, file.basename);
         existingContent = existingContent ?? (await this.app.vault.read(file) + '\r\r');
         await this.app.vault.modify(file, existingContent + templatedContent);
         await this.doc.replaceContent(file.basename, file.path, this.editor, currentFile, templatedContent, this.content, this.mode);
         if(this.settings.openNewNote){
-          this.app.workspace.openLinkText(file.basename, getLinkpath(file.path), true);
+          await this.app.workspace.openLinkText(file.basename, getLinkpath(file.path), true);
         }
       }
 
-      getCurrentFile(): {currentView: MarkdownView, currentFile: TFile} {
+      getCurrentFile(): {currentView: MarkdownView | null, currentFile: TFile | null} {
         const currentView = this.app.workspace.getActiveViewOfType(MarkdownView);
-        const currentFile = currentView.file;
+        const currentFile = currentView?.file ?? null;
         return {currentView, currentFile};
       }
 

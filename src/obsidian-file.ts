@@ -1,4 +1,4 @@
-import { App, MarkdownView, Notice, Vault, normalizePath, TFile } from 'obsidian';
+import { App, MarkdownView, Vault, normalizePath, TFile, TFolder } from 'obsidian';
 import { NoteRefactorSettings, Location } from './settings';
 import MomentDateRegex from './moment-date-regex'
 import NRFile from './file';
@@ -18,14 +18,14 @@ export default class ObsidianFile {
         this.momentDateRegex = new MomentDateRegex();
     }
 
-    filePath(view: any) : string {
+    filePath(view: MarkdownView | null) : string {
         let path = '';
         switch(this.settings.newFileLocation){
           case Location.VaultFolder:
             path = this.vault.getRoot().path;
             break;
           case Location.SameFolder:
-            path = view.file.parent.path;
+            path = view?.file?.parent?.path ?? this.vault.getRoot().path;
             break;
           case Location.SpecifiedFolder:
             path = this.momentDateRegex.replace(this.settings.customFolder);
@@ -34,7 +34,7 @@ export default class ObsidianFile {
         return normalizePath(path);
     }
   
-    filePathAndFileName(fileName: string, view: any): string {
+    filePathAndFileName(fileName: string, view: MarkdownView | null): string {
       return normalizePath(`${this.filePath(view)}/${fileName}.md`);
     }
 
@@ -43,7 +43,7 @@ export default class ObsidianFile {
       const folderPath = this.filePath(view);
       const filePath = this.filePathAndFileName(fileName, view);
       //Check if folder exists and create if needed
-      const folderExists = await this.vault.adapter.exists(folderPath, false);
+      const folderExists = this.vault.getAbstractFileByPath(folderPath) instanceof TFolder;
       if(!folderExists) {
         const folders = folderPath.split('/');
         try {
@@ -54,9 +54,9 @@ export default class ObsidianFile {
       }
       try {
         //If files exists then append conent to existing file
-        const fileExists = await this.vault.adapter.exists(filePath);
-        if(fileExists){
-          await this.appendFile(filePath, note);
+        const existing = this.vault.getAbstractFileByPath(filePath);
+        if(existing instanceof TFile){
+          await this.appendFile(existing, note);
         } else {
           await this.vault.create(filePath, note);
         }
@@ -66,12 +66,13 @@ export default class ObsidianFile {
       }
     }
 
-    async appendFile(filePath: string, note: string) {
-      let existingContent = await this.app.vault.adapter.read(filePath);
-      if(existingContent.length > 0) {
-        existingContent = existingContent + '\r\r';
-      }
-      await this.vault.adapter.write(filePath, existingContent + note);
+    async appendFile(file: TFile, note: string) {
+      await this.vault.process(file, (existingContent) => {
+        if(existingContent.length > 0) {
+          existingContent = existingContent + '\r\r';
+        }
+        return existingContent + note;
+      });
     }
   
     private async createFoldersFromVaultRoot(parentPath: string, folders: string[]): Promise<void> {
@@ -79,7 +80,7 @@ export default class ObsidianFile {
         return;
       }
       const newFolderPath = normalizePath([parentPath, folders[0]].join('/'));
-      const folderExists = await this.vault.adapter.exists(newFolderPath, false)
+      const folderExists = this.vault.getAbstractFileByPath(newFolderPath) instanceof TFolder;
         folders.shift();
         if(folderExists) {
           await this.createFoldersFromVaultRoot(newFolderPath, folders);

@@ -132,7 +132,7 @@ export default class NRDoc {
         contentArr.forEach((line, i) => {
           const level = this.headingLevel(line);
           if (level > 0) {
-            contentArr[i] = line.substr(minHeadingLevel - 1);
+            contentArr[i] = line.substring(minHeadingLevel - 1);
           }
         });
       }

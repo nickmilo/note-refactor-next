@@ -1,0 +1,20 @@
+{
+  "name": "note-refactor-next",
+  "version": "1.0.1",
+  "description": "Extract selected text into new notes and split notes. A maintained continuation of Note Refactor by James Lynch.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+  },
+  "author": "Nick Milo",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.25.0",
+    "obsidian": "latest",
+    "builtin-modules": "^3.3.0",
+    "tslib": "^2.6.0",
+    "typescript": "^5.4.0"
+  }
+}

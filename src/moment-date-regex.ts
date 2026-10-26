@@ -7,8 +7,8 @@ export default class MomentDateRegex {
         const dateRegex = DATE_REGEX;
         const customFolderString = input;
         //Iterate through the matches to collect them in a single array
-        const matches = [];
-        let match;
+        const matches: RegExpExecArray[] = [];
+        let match: RegExpExecArray | null;
         while(match = dateRegex.exec(customFolderString)){
           matches.push(match)
         }
@@ -20,8 +20,8 @@ export default class MomentDateRegex {
         //Transform date matches into moment formatted dates
         const formattedDates = matches.map(m => {
           //Default to YYYYMMDDHHmm if {{date}} is used
-          const dateFormat = m.groups.date === '' ? DEFAULT_DATE_FORMAT : m.groups.date;
-          return [m.groups.target, 
+          const dateFormat = !m.groups?.date ? DEFAULT_DATE_FORMAT : m.groups.date;
+          return [m.groups?.target ?? '', 
             this.getMoment(now, dateFormat)];
         });
     

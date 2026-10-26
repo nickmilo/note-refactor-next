@@ -10,6 +10,9 @@ This is a continuation of **[Note Refactor](https://github.com/lynchjames/note-r
 - Uses Obsidian's `Notice` for the "use edit mode" message (the original called the browser's `Notification` API).
 - Uses Obsidian's bundled `moment` instead of shipping its own copy.
 - Complete manifest (`author`, `minAppVersion`).
+- Uses Obsidian's Vault API (`getAbstractFileByPath`, `Vault.process`) instead of raw adapter reads and writes.
+- Awaits file operations in order, including when splitting a note by headings.
+- Builds settings and suggestion elements with Obsidian's `createEl` helpers; settings names are in sentence case.
 - Default hotkey for **Extract selection to new note - first line as file name** is `Cmd/Ctrl + Shift + R`.
 
 ## Commands

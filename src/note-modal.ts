@@ -1,4 +1,4 @@
-import { App, FuzzyMatch, FuzzySuggestModal, MarkdownView, SuggestModal, TFile } from 'obsidian';
+import { App, FuzzyMatch, FuzzySuggestModal, TFile } from 'obsidian';
 import ModalNoteCreation from './modal-note-creation';
 const EMPTY_TEXT = 'No files found to append content. Enter to create a new one.'
 const PLACEHOLDER_TEXT = 'Type file to append to or create';
@@ -13,7 +13,6 @@ export default class NoteRefactorModal extends FuzzySuggestModal<TFile>{
     files: TFile[];
     newNoteResult: HTMLDivElement;
     suggestionEmpty: HTMLDivElement;
-    obsFile: any;
     noSuggestion: boolean;
 
     constructor(app: App, modalNoteCreation: ModalNoteCreation) {
@@ -46,24 +45,21 @@ export default class NoteRefactorModal extends FuzzySuggestModal<TFile>{
     
     onChooseItem(item: TFile, evt: MouseEvent | KeyboardEvent): void {
         if(this.noSuggestion || item.vault == undefined) {
-            this.modalNoteCreation.create(this.inputEl.value);
+            void this.modalNoteCreation.create(this.inputEl.value);
         } else {
-            this.modalNoteCreation.append(item);
+            void this.modalNoteCreation.append(item);
         }
     }
 
     renderSuggestion(item: FuzzyMatch<TFile>, el: HTMLElement) {
-        el.innerText = item.item.path.replace('.md', '');
+        el.setText(item.item.path.replace('.md', ''));
         if(item.item.vault == undefined) {
             this.itemInstructionMessage(el, 'Enter to create new file');
         }
     }
 
     itemInstructionMessage(resultEl: HTMLElement, message: string) {
-        const el = document.createElement('kbd');
-        el.addClass('suggestion-hotkey');
-        el.innerText = message;
-        resultEl.appendChild(el);
+        resultEl.createEl('kbd', { cls: 'suggestion-hotkey', text: message });
     }
 
     isMatch(input: string, match: string){

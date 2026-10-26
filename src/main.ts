@@ -2,9 +2,6 @@ import {
   MarkdownView,
   Notice,
   Plugin,
-  Vault, 
-  DataAdapter,
-  SuggestModal,
   getLinkpath,
   Editor
 } from 'obsidian';
@@ -23,10 +20,6 @@ export default class NoteRefactor extends Plugin {
   obsFile: ObsidianFile;
   file: NRFile;
   NRDoc: NRDoc;
-  vault: Vault;
-  vaultAdapter: DataAdapter;
-
-  onInit() {}
 
   async onload() {
     this.settings = Object.assign(new NoteRefactorSettings(), await this.loadData());
@@ -98,25 +91,25 @@ export default class NoteRefactor extends Plugin {
     this.addSettingTab(new NoteRefactorSettingsTab(this.app, this));
   }
 
-  onunload() {
-  }
-
-  editModeGuard(command: () => any): void {
+  editModeGuard(command: () => unknown): void {
     const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
     if(!mdView || mdView.getMode() !== 'source') {
       new Notice('Please use Note Refactor Next in edit mode');
       return;
     } else {
-      command();
+      void command();
     }
   }
 
   async splitOnHeading(headingLevel: number){
       const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+      if(!mdView) {return}
       const doc = mdView.editor;
       const headingNotes = this.NRDoc.contentSplitByHeading(doc, headingLevel);
       const dedupedFileNames = this.file.ensureUniqueFileNames(headingNotes);
-      headingNotes.forEach((hn, i) => this.createNoteWithFirstLineAsFileName(dedupedFileNames[i], hn, mdView, doc, 'replace-headings', true));
+      for (const [i, hn] of headingNotes.entries()) {
+        await this.createNoteWithFirstLineAsFileName(dedupedFileNames[i], hn, mdView, doc, 'replace-headings', true);
+      }
   }
 
   async extractSelectionFirstLine(mode: ReplaceMode): Promise<void> {
@@ -148,6 +141,7 @@ export default class NoteRefactor extends Plugin {
     const originalNote = this.NRDoc.noteContent(header, contentArr);
     let note = originalNote;
     const filePath = await this.obsFile.createOrAppendFile(fileName, '');
+    if (!filePath || !mdView.file) { return; }
 
     if (this.settings.refactoredNoteTemplate !== undefined && this.settings.refactoredNoteTemplate !== '') {
       const link = await this.app.fileManager.generateMarkdownLink(mdView.file, '', '', '');
@@ -169,6 +163,7 @@ export default class NoteRefactor extends Plugin {
     const originalNote = this.NRDoc.noteContent(originalHeader, contentArr);
     let note = originalNote;
     const filePath = await this.obsFile.createOrAppendFile(fileName, '');
+    if (!filePath || !mdView.file) { return; }
 
     if (this.settings.refactoredNoteTemplate !== undefined && this.settings.refactoredNoteTemplate !== '') {
       const link = await this.app.fileManager.generateMarkdownLink(mdView.file, '', '', '');
