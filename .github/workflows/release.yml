@@ -1,6 +1,6 @@
 # Publishes a GitHub release whenever the version in manifest.json changes.
-# Obsidian delivers theme updates from releases: the tag must match the
-# manifest version, with theme.css and manifest.json attached.
+# Obsidian delivers plugin updates from releases: the tag must match the
+# manifest version, with main.js, manifest.json and styles.css attached.
 name: Release
 
 on:
