@@ -1,6 +1,6 @@
 {
   "name": "note-refactor-next",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Extract selected text into new notes and split notes. A maintained continuation of Note Refactor by James Lynch.",
   "main": "main.js",
   "scripts": {

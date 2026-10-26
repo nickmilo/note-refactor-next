@@ -1,7 +1,7 @@
 {
   "id": "note-refactor-next",
   "name": "Note Refactor Next",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "minAppVersion": "1.13.0",
   "description": "Extract selected text into new notes and split notes. A maintained continuation of Note Refactor by James Lynch.",
   "author": "Nick Milo",
